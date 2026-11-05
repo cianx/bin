@@ -1,0 +1,17 @@
+#!/bin/bash
+
+ps -aux | grep rclone
+
+umount /home/cian/GDrive
+umount /home/cian/GPhotos
+
+killall rclone
+nohup rclone mount --vfs-cache-mode=full gdrive: /home/cian/GDrive &
+nohup rclone bisync ragkar: /mnt/extra/prawn/ragkar --conflict-resolve newer &
+
+ps -aux | grep rclone
+
+
+
+
+

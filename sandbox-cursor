@@ -26,7 +26,7 @@ exec sudo -u sandbox -H \
     DISPLAY="${DISPLAY:-}" \
     XAUTHORITY="${XAUTHORITY:-}" \
     XDG_RUNTIME_DIR="/run/user/${SANDBOX_UID}" \
-S_SESSION_BUS_ADDRESS="unix:path=/run/user/${SANDBOX_UID}/bus" \
+    DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/${SANDBOX_UID}/bus" \
    /usr/share/cursor/cursor --password-store=basic --new-window /home/cian/Workspaces/sandbox "$@"
 
 

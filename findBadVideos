@@ -1,0 +1,19 @@
+#!/bin/bash
+#  set -x 
+
+IFS=$'\n'
+
+DIR=${1:-'.'}
+FILES=`find $DIR -type f -name "*.mp4" -o -name "*.mkv"` 
+
+for f in $FILES 
+do
+    echo "testing $f"
+    ffmpeg -v error -i "$f" -f null null
+    if [ $? -ne 0 ] 
+    then
+        echo "    bad"
+        echo "$f" >> bad-videos.txt
+    fi
+done
+

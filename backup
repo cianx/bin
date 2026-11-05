@@ -1,4 +1,6 @@
 #!/bin/bash
 
-BACKUP_DIR=/home/cian/Backups
+BACKUP_DIR=/home/cian/GDrive/Backups/$HOSTNAME
 apt list --installed > ${BACKUP_DIR}/apt-installed.txt
+# tar --exclude="sabnzbd/config/Downloads" --exclude="Plex Media Server/Cache" --exclude="config/MediaCover" -zcvf ${BACKUP_DIR}/plex-config.tar.gz /mnt/extra/config/*
+# ls -1 /mnt/extra/downloads/sabnzbd_backup_* | sort -r | tail -n +6 | xargs rm

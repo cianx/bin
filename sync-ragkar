@@ -1,0 +1,15 @@
+#!/bin/bash
+set -x
+
+SOURCE=ragkar:
+DESTINATION=/mnt/extra/prawn/ragkar
+
+# Check if stdout is a terminal
+if [ -t 1 ]; then
+    ARGS="--progress"
+else
+    ARGS="-v"
+fi
+
+rclone bisync $SOURCE $DESTINATION $ARGS --conflict-resolve newer
+

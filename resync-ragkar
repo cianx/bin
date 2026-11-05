@@ -1,0 +1,8 @@
+#!/bin/bash
+set -x
+
+source=ragkar:
+destination=/mnt/extra/prawn/ragkar
+
+rclone bisync $source $destination --resync --resync-mode path1 --progress
+

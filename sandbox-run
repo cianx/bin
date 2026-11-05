@@ -19,6 +19,12 @@ SUDO_ENV=(
     "DBUS_SESSION_BUS_ADDRESS=unix:path=${SANDBOX_RUNTIME}/bus"
 )
 
+# Before the exec line in sandbox-run:
+if [ -z "${SSH_AUTH_SOCK:-}" ] && [ -f "/home/sandbox/.keychain/${HOSTNAME}-sh" ]; then
+    eval $(grep -h "^SSH_AUTH_SOCK=" "/home/sandbox/.keychain/${HOSTNAME}-sh")
+    [ -n "${SSH_AUTH_SOCK:-}" ] && SUDO_ENV+=("SSH_AUTH_SOCK=${SSH_AUTH_SOCK}")
+fi
+
 # Pass display variables if present
 [ -n "${DISPLAY:-}" ] && SUDO_ENV+=("DISPLAY=${DISPLAY}")
 [ -n "${WAYLAND_DISPLAY:-}" ] && SUDO_ENV+=("WAYLAND_DISPLAY=${WAYLAND_DISPLAY}")

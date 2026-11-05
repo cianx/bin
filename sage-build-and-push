@@ -5,17 +5,31 @@ if [[ -d "src" ]]; then
   cd src
 fi
 
+
+env=$1
+cluster=""
+
 SERVICE_DIR=$(basename $(pwd))
 if [ "${SERVICE_DIR}" == "src" ] ; then
   pushd ..
   SERVICE_DIR=$(basename $(pwd))
   popd
 fi
-SERVICE=${1:-${SERVICE_DIR}}
+SERVICE=${2:-${SERVICE_DIR}}
 
-docker build . -t ghcr.io/workese/${SERVICE}:beta
-docker build . -t ghcr.io/workese/${SERVICE}:qa
-docker push ghcr.io/workese/${SERVICE}:qa
-docker push ghcr.io/workese/${SERVICE}:beta
+
+case $env in
+  "qa")
+    docker build . -t ghcr.io/workese/${SERVICE}:qa
+    docker push ghcr.io/workese/${SERVICE}:qa
+    ;;
+  "beta")
+    docker build . -t ghcr.io/workese/${SERVICE}:beta
+    docker push ghcr.io/workese/${SERVICE}:beta
+    ;;
+  *)
+    echo "Unrecognized environment $1"
+    exit 1
+esac
 
 

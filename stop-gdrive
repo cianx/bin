@@ -1,0 +1,14 @@
+#!/bin/bash
+
+ps -aux | grep rclone
+
+umount /home/cian/GDrive
+umount /home/cian/GPhotos
+killall rclone
+
+ps -aux | grep rclone
+
+
+
+
+
