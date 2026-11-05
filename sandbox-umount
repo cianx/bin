@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [[ $# -lt 1 ]]; then
+    echo "Usage: $0 <project-name>" >&2
+    exit 1
+fi
+
+PROJECT="$1"
+DEST="/home/sandbox/Workspaces/${PROJECT}"
+
+# Check if the destination exists
+if [[ ! -d "${DEST}" ]]; then
+    echo "Notice: Directory '${DEST}' does not exist."
+    exit 0
+fi
+
+# Unmount if it is currently a mount point
+if mountpoint -q "${DEST}"; then
+    sudo umount "${DEST}"
+    echo "Unmounted '${DEST}'"
+else
+    echo "Notice: '${DEST}' is not mounted."
+fi
+
+# Remove the empty mount point directory as sandbox user
+if [[ -d "${DEST}" ]]; then
+    sudo -u sandbox rmdir "${DEST}"
+    echo "Removed mount point directory '${DEST}'"
+fi

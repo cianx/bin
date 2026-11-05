@@ -1,0 +1,14 @@
+#!/bin/bash
+set -e
+inverse=$(tput rev)
+reset=$(tput sgr0)
+txtbld=$(tput bold)
+bldred=${txtbld}$(tput setaf 1)
+
+readarray -t DIRS <  <( ls -d */ )
+
+for d in "${DIRS[@]}"; do
+    echo "${bldred}->${reset} Processing ${inverse}$d${reset}"
+    ( cd "$d" && $@ )
+done 
+

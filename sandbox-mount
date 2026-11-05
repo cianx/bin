@@ -1,0 +1,36 @@
+
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [[ $# -lt 1 ]]; then
+    echo "Usage: $0 <project-name>" >&2
+    exit 1
+fi
+
+PROJECT="$1"
+SRC="/home/cian/Workspaces/${PROJECT}"
+DEST="/home/sandbox/Workspaces/${PROJECT}"
+
+# Verify the source directory exists
+if [[ ! -d "${SRC}" ]]; then
+    echo "Error: Source directory '${SRC}' does not exist." >&2
+    exit 1
+fi
+
+# Create target directory as the sandbox user if it does not exist
+if [[ ! -d "${DEST}" ]]; then
+    sudo -u sandbox mkdir -p "${DEST}"
+fi
+
+# Check if the destination is already mounted
+if mountpoint -q "${DEST}"; then
+    echo "Notice: '${DEST}' is already a mountpoint."
+    exit 0
+fi
+
+# Perform the bind mount
+sudo mount --bind "${SRC}" "${DEST}"
+
+echo "Mounted '${SRC}' -> '${DEST}'"
+
+

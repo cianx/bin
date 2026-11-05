@@ -1,0 +1,7 @@
+#!/usr/bin/bash
+
+input="$1"
+output="${input%.*}.odt"
+
+pandoc -t odt -s "$input" -s -o "$output"
+

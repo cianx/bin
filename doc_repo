@@ -1,0 +1,87 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [[ $# -lt 2 ]]; then
+  echo "Usage: $0 <repo-url> <working-dir-path> [repo-name]"
+  exit 1
+fi
+
+REPO_URL="$1"
+# Resolve working directory to an absolute path
+WORK_DIR="$(mkdir -p "$2" && cd "$2" && pwd)"
+
+# Determine repo name from arg or extract from git URL
+if [[ -n "${3:-}" ]]; then
+  REPO_NAME="$3"
+else
+  REPO_NAME="$(basename "$REPO_URL" .git)"
+fi
+
+GIT_DIR="$HOME/Workspaces/${REPO_NAME}.git"
+GIT_POINTER_FILE="${WORK_DIR}/.git"
+
+# Check if working directory contains files (ignoring . and ..)
+IS_POPULATED=false
+if [[ -n "$(ls -A "$WORK_DIR" 2>/dev/null)" ]]; then
+  IS_POPULATED=true
+fi
+
+if [[ "$IS_POPULATED" == true ]]; then
+  # If a .git pointer file exists, verify it matches
+  if [[ -f "$GIT_POINTER_FILE" ]]; then
+    EXISTING_TARGET="$(sed -E 's/^gitdir:[[:space:]]*//' "$GIT_POINTER_FILE")"
+    
+    # Resolve relative pointer paths if necessary
+    if [[ "$EXISTING_TARGET" != /* ]]; then
+      EXISTING_TARGET="$(cd "$WORK_DIR" && cd "$EXISTING_TARGET" && pwd)"
+    else
+      EXISTING_TARGET="$(cd "$EXISTING_TARGET" 2>/dev/null && pwd || echo "$EXISTING_TARGET")"
+    fi
+
+    RESOLVED_GIT_DIR="$(cd "$GIT_DIR" 2>/dev/null && pwd || echo "$GIT_DIR")"
+
+    if [[ "$EXISTING_TARGET" != "$RESOLVED_GIT_DIR" ]]; then
+      echo "ERROR: .git pointer mismatch in populated directory!" >&2
+      echo "  Expected: ${RESOLVED_GIT_DIR}" >&2
+      echo "  Found:    ${EXISTING_TARGET}" >&2
+      exit 1
+    fi
+  elif [[ -d "$GIT_POINTER_FILE" ]]; then
+    echo "ERROR: Working directory already contains an embedded .git folder." >&2
+    exit 1
+  fi
+
+  # Initialize or clone the git database if it does not exist yet
+  if [[ ! -d "$GIT_DIR" ]]; then
+    git clone --bare "$REPO_URL" "$GIT_DIR"
+  fi
+
+  # Ensure the .git pointer file exists and points to the gitdir
+  echo "gitdir: ${GIT_DIR}" > "$GIT_POINTER_FILE"
+
+  # Configure working tree path
+  git --git-dir="$GIT_DIR" config core.worktree "$WORK_DIR"
+  git --git-dir="$GIT_DIR" config core.bare false
+
+  # Hook up to the remote default branch without touching local files
+  DEFAULT_BRANCH="$(git --git-dir="$GIT_DIR" symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null | sed 's|^origin/||' || echo "main")"
+
+  cd "$WORK_DIR"
+  git --git-dir="$GIT_DIR" --work-tree="$WORK_DIR" update-ref "refs/heads/${DEFAULT_BRANCH}" "origin/${DEFAULT_BRANCH}"
+  git --git-dir="$GIT_DIR" --work-tree="$WORK_DIR" reset --mixed "origin/${DEFAULT_BRANCH}"
+
+  echo "Linked populated directory '${WORK_DIR}' to '${GIT_DIR}' on branch '${DEFAULT_BRANCH}'."
+  git --git-dir="$GIT_DIR" --work-tree="$WORK_DIR" status --short
+
+else
+  # Working directory is empty: standard clone with separate git dir
+  mkdir -p "$(dirname "$GIT_DIR")"
+  git clone --separate-git-dir "$GIT_DIR" "$REPO_URL" "$WORK_DIR"
+  
+  # Ensure the pointer file is in place
+  echo "gitdir: ${GIT_DIR}" > "$GIT_POINTER_FILE"
+  git --git-dir="$GIT_DIR" config core.worktree "$WORK_DIR"
+
+  echo "Successfully cloned into '${WORK_DIR}' with git storage at '${GIT_DIR}'."
+fi
+

@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SANDBOX_USER="sandbox"
+SANDBOX_UID=$(id -u "$SANDBOX_USER")
+SANDBOX_RUNTIME="/run/user/${SANDBOX_UID}"
+
+# Ensure runtime directory exists if user lingering is active
+if [ ! -d "$SANDBOX_RUNTIME" ]; then
+    SANDBOX_RUNTIME="/tmp"
+fi
+
+# Set up clean execution environment
+SUDO_ENV=(
+    "HOME=/home/${SANDBOX_USER}"
+    "USER=${SANDBOX_USER}"
+    "LOGNAME=${SANDBOX_USER}"
+    "XDG_RUNTIME_DIR=${SANDBOX_RUNTIME}"
+    "DBUS_SESSION_BUS_ADDRESS=unix:path=${SANDBOX_RUNTIME}/bus"
+)
+
+# Pass display variables if present
+[ -n "${DISPLAY:-}" ] && SUDO_ENV+=("DISPLAY=${DISPLAY}")
+[ -n "${WAYLAND_DISPLAY:-}" ] && SUDO_ENV+=("WAYLAND_DISPLAY=${WAYLAND_DISPLAY}")
+[ -n "${XAUTHORITY:-}" ] && SUDO_ENV+=("XAUTHORITY=${XAUTHORITY}")
+
+if [ $# -eq 0 ]; then
+    # No arguments: launch interactive login bash shell
+    exec sudo -u "$SANDBOX_USER" -H "${SUDO_ENV[@]}" bash -l
+else
+    # Arguments passed: execute them as sandbox
+    exec sudo -u "$SANDBOX_USER" -H "${SUDO_ENV[@]}" "$@"
+fi
+
+
+

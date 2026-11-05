@@ -1,0 +1,73 @@
+#!/bin/bash
+set -x
+env=$1
+cluster=""
+case $env in
+  "qa")
+    cluster="usw2-q-beta"
+    ;;
+  "beta")
+    cluster="usw2-p-beta"
+    ;;
+  *)
+    echo "Unrecognized environment $1"
+    exit 1
+esac
+
+service=""
+case $2 in
+  "analysis")
+    service="mvp-ai-analysis-microservice-${env}"
+    ;;
+  "chatbot")
+    service="mvp-chatbot-microservice-${env}"
+    ;;
+  "portal")
+    service="mvp-frontend-web-portal-${env}"
+    ;;
+  "activity")
+    service="mvp-activity-microservice-${env}"
+    ;;
+  "vapi")
+    service="mvp-vapi-api-${env}"
+    ;;
+  "calendar")
+    service="mvp-calendar-microservice-${env}"
+    ;;
+  "transcribe")
+    service="mvp-vm-transcribe-microservice-${env}"
+    ;;
+  "admin")
+    service="mvp-frontend-web-admin-${env}"
+    ;;
+  "marketing")
+    service="mvp-frontend-marketing-${env}"
+    ;;
+  "account")
+    service="mvp-account-microservice-${env}"
+    ;;
+  "notification")
+    service="mvp-notification-microservice-${env}"
+    ;;
+  "interaction")
+    service="mvp-interaction-microservice-${env}"
+    ;;
+  "scheduling")
+    service="mvp-scheduling-microservice-${env}"
+    ;;
+  "texting")
+    service="mvp-texting-microservice-${env}"
+    ;;
+  "identity")
+    service="mvp-identity-microservice-${env}"
+    ;;
+  "api")
+    service="mvp-combined-api-${env}"
+    ;;
+  *)
+    echo "Unrecognized service $1"
+    exit 1
+esac
+
+ aws ecs update-service --cluster ${cluster} --service $service --no-cli-pager --force-new-deployment
+# aws ecs update-service --cluster usw2-p-${env} --service $service --enable-execute-command --force-new-deployment

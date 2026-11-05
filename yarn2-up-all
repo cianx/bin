@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+yarn outdated
+yarn outdated --json | jq '.[] |.name' | tr '\n' ' ' | xargs yarn up
+yarn outdated

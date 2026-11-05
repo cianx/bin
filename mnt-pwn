@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+set -x
+set -e
+s3fs cpwn ~/mount/cpwn -o passwd_file=/home/cian/.passwd-s3fs -o url=https://s3-us-west-2.amazonaws.com -ouse_cache=/tmp -omax_stat_cache_size=1000000
+encfs ~/mount/cpwn ~/mount/pwn

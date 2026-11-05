@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+count=0
+printf "\n\nIteration $count \n\n"
+
+while $*; do
+    ((count++))
+    printf "\n\nIteration $count \n\n"
+done
+
+printf "\n\nFailed after $count iterations \n\n"

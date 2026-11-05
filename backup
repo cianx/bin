@@ -1,0 +1,4 @@
+#!/bin/bash
+
+BACKUP_DIR=/home/cian/Backups
+apt list --installed > ${BACKUP_DIR}/apt-installed.txt

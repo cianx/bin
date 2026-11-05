@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+set -e
+set -x
+
+git checkout main
+git fetch
+git pull
+# git branch -vv | grep ': gone]'|  grep -v "\*" | awk '{ print $1; }' | xargs -r git branch -D
+git branch | grep -v " main$" | xargs git branch -D
+git branch

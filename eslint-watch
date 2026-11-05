@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+yarn dlx eslint-watch src -w --color
+

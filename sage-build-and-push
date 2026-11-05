@@ -1,0 +1,21 @@
+#!/usr/bin/bash
+set -x
+
+if [[ -d "src" ]]; then
+  cd src
+fi
+
+SERVICE_DIR=$(basename $(pwd))
+if [ "${SERVICE_DIR}" == "src" ] ; then
+  pushd ..
+  SERVICE_DIR=$(basename $(pwd))
+  popd
+fi
+SERVICE=${1:-${SERVICE_DIR}}
+
+docker build . -t ghcr.io/workese/${SERVICE}:beta
+docker build . -t ghcr.io/workese/${SERVICE}:qa
+docker push ghcr.io/workese/${SERVICE}:qa
+docker push ghcr.io/workese/${SERVICE}:beta
+
+

@@ -1,0 +1,17 @@
+#!/bin/bash
+
+function thumbnailFile() {
+  r=`file -N -i "$1" | sed -n 's!: video/[^:]*$!!p'`
+  if [ ! -z "$r" ] ; then
+    thumbfile=`echo "$1" | sed 's/\\(.*\)\\..*\$/\1_thumb.jpg/'` 
+    if [ -e "$thumbfile" ] ; then
+      return
+    fi
+    ezthumb "$1"
+  fi
+}
+export -f thumbnailFile
+echo "Finding files in $(pwd)"
+find . -type f -exec bash -c "thumbnailFile \"{}\"" \;
+
+

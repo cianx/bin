@@ -1,0 +1,80 @@
+# source this file
+# set -x
+
+# AWS SSO Login and Environment Variable Setup Script
+# This script automates the process of logging in to AWS using Single Sign-On (SSO) and setting up environment variables for AWS access credentials that can be used in locally run docker containers. 
+# To run Terraform with AWS credentials, add a "-tf" flag when executing this script.
+
+# It performs the following steps:
+
+# - Logs you in to AWS SSO using a specified profile.
+# - Forces the AWS CLI to cache the session token by making a sts get-caller-identity API call.
+# - Retrieves the most recent session token from the AWS CLI cache.
+# - Exports the AWS access credentials (AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, and AWS_SESSION_TOKEN) as environment variables for your session.
+
+# Prerequisites
+#   AWS CLI must be installed and configured.
+#   Your AWS profile must be set up for SSO in the AWS CLI configuration. Copy the files found in the 1pass Developers vault under AWS Admin SSO Config
+unset AWS_PROFILE
+unset AWS_ACCESS_KEY_ID
+unset AWS_SECRET_ACCESS_KEY
+unset AWS_SESSION_TOKEN
+
+
+PROFILE_NAME="AWSAdministratorAccess-058264546422"
+# PROFILE_NAME="AWSAdministratorAccess-533267112424"
+export AWS_PROFILE="$PROFILE_NAME"
+
+# Step 1: Run AWS SSO Login
+aws sso login --profile "$PROFILE_NAME"
+
+# Step 2: Force caching of the session token by clearing the cli cache and calling sts get-caller-identity
+# rm -f ~/.aws/cli/cache/*
+aws sts get-caller-identity --profile "$PROFILE_NAME"  --no-cli-pager >/dev/null
+
+# Step 3: Retrieve the most recent session token from the AWS CLI cache
+# CACHE_DIR="$HOME/.aws/cli/cache"
+# CREDENTIALS_FILE=$(ls -t "$CACHE_DIR" 2>/dev/null | head -n 1) # Get the most recent file
+
+# Check that a file was found and contains credentials
+# if [[ -z "$CREDENTIALS_FILE" ]]; then
+#   echo "No credentials cache file found in $CACHE_DIR."
+#   return
+# fi
+
+# FULL_PATH="$CACHE_DIR/$CREDENTIALS_FILE"
+
+AWS_ACCESS_KEY_ID=$(aws configure get aws_access_key_id --profile $PROFILE_NAME)
+AWS_SECRET_ACCESS_KEY=$(aws configure get aws_secret_access_key --profile $PROFILE_NAME)
+# AWS_SESSION_TOKEN=$(aws configure get aws_session_token --profile $PROFILE_NAME )
+
+# Extract credentials using grep and awk
+# AWS_ACCESS_KEY_ID=$(grep -o '"AccessKeyId": *"[^"]*"' "$FULL_PATH" | awk -F '"' '{print $4}')
+# AWS_SECRET_ACCESS_KEY=$(grep -o '"SecretAccessKey": *"[^"]*"' "$FULL_PATH" | awk -F '"' '{print $4}')
+# AWS_SESSION_TOKEN=$(grep -o '"SessionToken": *"[^"]*"' "$FULL_PATH" | awk -F '"' '{print $4}')
+echo "AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID"
+echo "AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY"
+# echo "AWS_SESSION_TOKEN=$AWS_SESSION_TOKEN"
+
+# Check if credentials were actually retrieved
+if [[ -z "$AWS_ACCESS_KEY_ID" || -z "$AWS_SECRET_ACCESS_KEY" || -z "$AWS_SESSION_TOKEN" ]]; then
+  echo "Credentials not found in the cache file."
+  return
+fi
+
+# Export the environment variables
+export AWS_PROFILE
+export AWS_ACCESS_KEY_ID
+export AWS_SECRET_ACCESS_KEY
+export AWS_SESSION_TOKEN
+
+# Export the variables to be used by terraform
+export TF_VAR_AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+export TF_VAR_AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+export TF_VAR_AWS_SESSION_TOKEN=$AWS_SESSION_TOKEN
+
+echo "AWS_PROFILE=$AWS_PROFILE"
+echo "AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID"
+echo "AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY"
+echo "AWS_SESSION_TOKEN=$AWS_SESSION_TOKEN"
+

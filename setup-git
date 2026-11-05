@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+
+git config --local core.autocrlf false
+git config --local push.default matching
+
+
+case $1 in
+    cixce )
+	git config --local user.name "Cian Montgomery"
+	git config --local user.email cian@cixce.com
+        ;;
+    cintel )
+	git config --local user.name "Cian Montgomery"
+	git config --local user.email cian.montgomery@intel.com
+        ;;
+    * )
+        git config --local user.name "Cian Montgomery"
+	git config --local user.email cian@cianmontgomery.com
+        ;;
+esac
+git config -l --local
+ 

@@ -1,0 +1,12 @@
+#!/usr/bin/bash
+
+for f in "$@" 
+do
+  echo $f
+  if to-odt "$f" ; then
+    rm "$f"
+  else
+    echo "Failed to convert $f"
+  fi
+done
+

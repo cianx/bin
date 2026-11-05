@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# 1. Authorize Wayland socket access if running under Wayland
+if [ -n "${WAYLAND_DISPLAY:-}" ]; then
+    RUNTIME_DIR="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
+    if [ -e "$RUNTIME_DIR/$WAYLAND_DISPLAY" ]; then
+        setfacl -m u:sandbox:rw "$RUNTIME_DIR/$WAYLAND_DISPLAY" 2>/dev/null || true
+    fi
+fi
+
+# 2. Authorize X11 server access if running under X11 or XWayland
+if [ -n "${DISPLAY:-}" ]; then
+    xhost +SI:localuser:sandbox >/dev/null 2>&1 || true
+fi
+
+# 3. Ensure sandbox user has its own active runtime directory for IPC/DBus
+SANDBOX_UID=$(id -u sandbox)
+SANDBOX_RUNTIME="/run/user/${SANDBOX_UID}"
+
+# 4. Launch Cursor as sandbox pointed directly to Workspaces
+SANDBOX_UID=$(id -u sandbox)
+   
+exec sudo -u sandbox -H \
+    WAYLAND_DISPLAY="${WAYLAND_DISPLAY:-}" \
+    DISPLAY="${DISPLAY:-}" \
+    XAUTHORITY="${XAUTHORITY:-}" \
+    XDG_RUNTIME_DIR="/run/user/${SANDBOX_UID}" \
+S_SESSION_BUS_ADDRESS="unix:path=/run/user/${SANDBOX_UID}/bus" \
+   /usr/share/cursor/cursor --password-store=basic --new-window /home/cian/Workspaces/sandbox "$@"
+
+

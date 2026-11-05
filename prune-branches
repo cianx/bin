@@ -1,0 +1,7 @@
+#/usr/bin/bash
+
+set -e
+set -x
+
+git checkout main
+git branch -r | egrep -v -f /dev/fd/0  <(git branch -vv | grep origin) | xargs git branch -d

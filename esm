@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+set -e
+set -x
+
+to-esm ./src/index.js --update-all --noheader 
+mv index.mjs src
+pushd src
+find . -name "*.js" -type f -exec to-esm {} --noheader \;
+rm *.js
+popd
+

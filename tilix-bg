@@ -1,0 +1,93 @@
+#!/usr/bin/env bash
+
+
+usage() {
+  echo "usage: $0 [ -f ] [ -c ] 1>&2"
+  echo "  -a advance to the next image"
+  echo "  -d delete the current image"
+  echo "  -s shuffle the images"
+}
+
+exit_abnormal() {       
+  usage
+  exit 1
+}
+
+while getopts "adps" options; do 
+  case "${options}" in                    # 
+    a)        
+      ADVANCE=1 
+      ;;
+    d)        
+      DELETE=1 
+      ;;
+    p)        
+      PREVIOUS=1 
+      ;;
+    s)        
+      SHUFFLE=1 
+      ;;
+    *)                                    # If unknown (any other) option:
+      exit_abnormal                       # Exit abnormally.
+      ;;
+  esac
+done
+
+# location of the folder with your background pictures
+imagePath="$HOME/.tilixBackgrounds"
+
+# Cron DBUS discovery block
+# when used with cron or as global systemd service instead of user service, the following is needed to find the dbus of the current user
+# change this to point to your specific UI session
+# uiSession="gnome-session-b" # gnome
+# uiSession="plasma_session" # plasma
+# enable the following lines to find and export the DBUS address
+# PID=$(pgrep "$uiSession")
+# export DBUS_SESSION_BUS_ADDRESS=$(grep -z DBUS_SESSION_BUS_ADDRESS /proc/$PID/environ | tr '\0' '\n' | cut -d= -f2-)
+# finally if used with cron do not forget to set up the cron job ;)
+
+# start of the actual script
+key="/com/gexperts/Tilix/background-image"
+selected=$(dconf read $key)
+selected=$(echo $selected | xargs)
+echo "old: $selected"
+
+if [[ "$ADVANCE" == "1" || "$PREVIOUS" == "1" ]]
+then
+  pics=("$imagePath"/*)
+  if [[ ! -f "$selected" ]]
+  then
+      file="${pics[0]}"
+  else
+    for ((i=0; i<${#pics[@]}; i++)); do
+      if [ "${pics[$i]}" = "$selected" ]
+      then
+        file="${pics[0]}"
+
+        if (($i+1<${#pics[@]}))
+        then
+          if [[ "$PREVIOUS" == "1" ]]
+          then
+            file="${pics[$i-1]}"
+          else
+            file="${pics[$i+1]}"
+          fi
+        fi
+        echo "new: '$file' $i $ADVANCE $PREVIOUS"
+        dconf write $key "'$file'"
+        break
+      fi
+    done
+  fi
+else
+  file="$imagePath/`ls ${imagePath} | shuf -n 1`"
+  echo "new: '$file'"
+  dconf write $key "'$file'"
+fi
+
+
+if [[ "$DELETE" == "1" ]]
+then
+  echo "removing $selected"
+  rm -f $selected
+fi

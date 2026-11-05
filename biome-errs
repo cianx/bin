@@ -1,0 +1,3 @@
+#!/bin/bash
+
+yarn lint:fix 2>&1 | grep src | choose 0 -f : | choose 0 | uniq

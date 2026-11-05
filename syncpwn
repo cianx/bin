@@ -1,0 +1,7 @@
+#!/bin/bash
+
+PWN_DIR=/home/cian/Downloads/pwn
+rclone copy -v $PWN_DIR/ ragkar:/Training/Tracks/incoming/
+rm -rf ${PWN_DIR}/*
+
+
